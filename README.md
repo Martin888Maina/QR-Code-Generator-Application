@@ -13,6 +13,7 @@ no dependencies, no backend — open the file and use it immediately.
 - URL and Text input modes with tab switching
 - Live character counter with a 500-character limit
 - Download the generated QR code as PNG, JPG, or SVG
+- Downloaded image files are scannable — quiet zone and high resolution included
 - Inline input validation — no browser alert dialogs
 - Fully responsive layout — works on mobile and desktop
 - Clean, minimal white interface
@@ -48,6 +49,15 @@ Then open `index.html` in Chrome, Firefox, or Safari.
 3. Click **Generate QR Code** or press Enter
 4. Scan the result with any phone camera or QR reader
 5. Click **Download PNG**, **Download JPG**, or **Download SVG** to save the file
+6. The downloaded file is fully scannable — share it, print it, or embed it anywhere
+
+## Download Format Guide
+
+| Format | Best For |
+|---|---|
+| PNG | Sharing digitally — WhatsApp, email, websites |
+| JPG | General use where file size matters |
+| SVG | Large format printing — scales without quality loss |
 
 ## Project Structure
 
