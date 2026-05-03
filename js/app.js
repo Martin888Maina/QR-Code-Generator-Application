@@ -27,11 +27,12 @@
       btn.setAttribute('aria-selected', 'true');
       activeTab = btn.getAttribute('data-type');
 
+      // always use type="text" to prevent browser-native URL validation
+      // interfering with our own inline error handling
+      input.setAttribute('type', 'text');
       if (activeTab === 'url') {
-        input.setAttribute('type', 'url');
         input.setAttribute('placeholder', 'https://example.com');
       } else {
-        input.setAttribute('type', 'text');
         input.setAttribute('placeholder', 'Type any text here...');
       }
 
@@ -79,8 +80,8 @@
     }
   });
 
-  // focus the input field as soon as the page loads
-  input.focus();
+  // defer focus slightly so mobile browsers honour it on page load
+  setTimeout(function () { input.focus(); }, 0);
 
   // --- Core generation function ---
 
@@ -174,7 +175,10 @@
     var link = document.createElement('a');
     link.download = 'qr-code.png';
     link.href = canvas.toDataURL('image/png');
+    // appending to the DOM before clicking ensures Safari triggers the download
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   }
 
   // JPEG has no alpha channel — fill white before drawing the QR canvas on top
@@ -191,7 +195,9 @@
     var link = document.createElement('a');
     link.download = 'qr-code.jpg';
     link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   }
 
   // qrcodejs only renders a canvas — wrap the PNG data inside an SVG image tag
@@ -207,11 +213,15 @@
       '</svg>'
     ].join('\n');
     var blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    var objectURL = URL.createObjectURL(blob);
     var link = document.createElement('a');
     link.download = 'qr-code.svg';
-    link.href = URL.createObjectURL(blob);
+    link.href = objectURL;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(link.href);
+    document.body.removeChild(link);
+    // defer revoke so the browser has time to start the download before the blob is released
+    setTimeout(function () { URL.revokeObjectURL(objectURL); }, 1000);
   }
 
   // Wire each download button to its function

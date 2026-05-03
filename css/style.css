@@ -38,6 +38,12 @@ a {
   color: var(--accent);
 }
 
+/* prevent Safari/WebKit from applying system button styling */
+button {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* --- Header --- */
 .site-header {
   background-color: var(--white);
