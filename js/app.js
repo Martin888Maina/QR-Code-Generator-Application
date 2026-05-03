@@ -122,10 +122,14 @@
         correctLevel: QRCode.CorrectLevel.H
       });
 
-      currentQRText = text;
-      enableDownloadButtons();
-      generateBtn.textContent = 'Generate QR Code';
-      generateBtn.disabled = false;
+      // give qrcodejs enough time to fully paint the canvas before
+      // downloads are enabled — 300ms is sufficient in all browsers
+      setTimeout(function () {
+        currentQRText = text;
+        enableDownloadButtons();
+        generateBtn.textContent = 'Generate QR Code';
+        generateBtn.disabled = false;
+      }, 300);
     }, 200);
   }
 
@@ -169,30 +173,6 @@
 
   // --- Download functions ---
 
-  // qrcodejs renders both a <canvas> and an <img> inside #qrcode.
-  // The <img> src is a reliable data URL in all browsers — use it as the source
-  // for all exports by drawing it onto a fresh canvas first.
-  function getExportCanvas(callback) {
-    var img = qrContainer.querySelector('img');
-    if (!img) return;
-    var exportCanvas = document.createElement('canvas');
-    exportCanvas.width = 220;
-    exportCanvas.height = 220;
-    var ctx = exportCanvas.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-    // if the image is already loaded draw immediately, otherwise wait for load
-    if (img.complete && img.naturalWidth !== 0) {
-      ctx.drawImage(img, 0, 0, exportCanvas.width, exportCanvas.height);
-      callback(exportCanvas);
-    } else {
-      img.onload = function () {
-        ctx.drawImage(img, 0, 0, exportCanvas.width, exportCanvas.height);
-        callback(exportCanvas);
-      };
-    }
-  }
-
   function triggerDownload(dataURL, filename) {
     var link = document.createElement('a');
     link.download = filename;
@@ -203,40 +183,46 @@
   }
 
   function downloadPNG() {
-    getExportCanvas(function (canvas) {
-      triggerDownload(canvas.toDataURL('image/png'), 'qr-code.png');
-    });
+    var canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    triggerDownload(canvas.toDataURL('image/png'), 'qr-code.png');
   }
 
-  // JPEG has no alpha channel — the white fill in getExportCanvas handles this
+  // JPEG has no alpha channel — draw the QR canvas onto a white-filled canvas first
   function downloadJPG() {
-    getExportCanvas(function (canvas) {
-      triggerDownload(canvas.toDataURL('image/jpeg', 0.95), 'qr-code.jpg');
-    });
+    var canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    var flat = document.createElement('canvas');
+    flat.width = canvas.width;
+    flat.height = canvas.height;
+    var ctx = flat.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, flat.width, flat.height);
+    ctx.drawImage(canvas, 0, 0);
+    triggerDownload(flat.toDataURL('image/jpeg', 0.95), 'qr-code.jpg');
   }
 
-  // embed the PNG data URL inside an SVG image tag for the SVG export
+  // embed the canvas PNG data URL inside an SVG image tag for the SVG export
   function downloadSVG() {
-    getExportCanvas(function (canvas) {
-      var dataURL = canvas.toDataURL('image/png');
-      var svgContent = [
-        '<svg xmlns="http://www.w3.org/2000/svg"',
-        '     xmlns:xlink="http://www.w3.org/1999/xlink"',
-        '     width="220" height="220">',
-        '  <image href="' + dataURL + '" width="220" height="220"/>',
-        '</svg>'
-      ].join('\n');
-      var blob = new Blob([svgContent], { type: 'image/svg+xml' });
-      var objectURL = URL.createObjectURL(blob);
-      var link = document.createElement('a');
-      link.download = 'qr-code.svg';
-      link.href = objectURL;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      // defer revoke so the browser starts the download before the blob is released
-      setTimeout(function () { URL.revokeObjectURL(objectURL); }, 1000);
-    });
+    var canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    var dataURL = canvas.toDataURL('image/png');
+    var svgContent = [
+      '<svg xmlns="http://www.w3.org/2000/svg"',
+      '     xmlns:xlink="http://www.w3.org/1999/xlink"',
+      '     width="' + canvas.width + '" height="' + canvas.height + '">',
+      '  <image href="' + dataURL + '" width="' + canvas.width + '" height="' + canvas.height + '"/>',
+      '</svg>'
+    ].join('\n');
+    var blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    var objectURL = URL.createObjectURL(blob);
+    var link = document.createElement('a');
+    link.download = 'qr-code.svg';
+    link.href = objectURL;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(function () { URL.revokeObjectURL(objectURL); }, 1000);
   }
 
   // Wire each download button to its function
