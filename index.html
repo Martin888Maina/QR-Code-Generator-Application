@@ -9,6 +9,75 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <h1 class="app-title">QR Code Generator</h1>
+      <p class="app-tagline">Generate a QR code from any URL or text in seconds</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="card">
+
+      <section class="input-panel" aria-label="Input">
+
+        <div class="type-selector" role="tablist">
+          <button class="tab-btn active" id="tab-url" role="tab" aria-selected="true" data-type="url">URL</button>
+          <button class="tab-btn" id="tab-text" role="tab" aria-selected="false" data-type="text">Text</button>
+        </div>
+
+        <div class="input-area">
+          <div class="input-wrapper">
+            <input
+              type="url"
+              id="qr-input"
+              class="qr-input"
+              placeholder="https://example.com"
+              maxlength="500"
+              autocomplete="off"
+              spellcheck="false"
+            >
+            <button class="clear-btn" id="clear-btn" aria-label="Clear input" title="Clear">&#215;</button>
+          </div>
+          <div class="input-meta">
+            <span class="error-msg" id="error-msg" role="alert" aria-live="polite"></span>
+            <span class="char-count" id="char-count">0 / 500</span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="generate-btn" id="generate-btn">Generate QR Code</button>
+        </div>
+
+      </section>
+
+      <section class="output-panel" aria-label="Output">
+
+        <div class="qr-display" id="qrcode">
+          <div class="qr-placeholder" id="qr-placeholder">
+            <div class="placeholder-box">
+              <span class="placeholder-text">Your QR code will appear here</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="download-bar">
+          <button class="download-btn disabled" id="btn-png" disabled>Download PNG</button>
+          <button class="download-btn disabled" id="btn-jpg" disabled>Download JPG</button>
+          <button class="download-btn disabled" id="btn-svg" disabled>Download SVG</button>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Martin Maina &mdash; <a href="https://github.com/Martin888Maina" target="_blank" rel="noopener">GitHub</a></p>
+  </footer>
+
   <script src="js/app.js"></script>
+
 </body>
 </html>
