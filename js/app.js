@@ -115,8 +115,8 @@
 
       new QRCode(qrContainer, {
         text: text,
-        width: 220,
-        height: 220,
+        width: 400,
+        height: 400,
         colorDark: '#111111',
         colorLight: '#ffffff',
         correctLevel: QRCode.CorrectLevel.H
@@ -182,36 +182,45 @@
     document.body.removeChild(link);
   }
 
-  function downloadPNG() {
+  // builds a padded canvas with a white quiet zone around the QR pattern
+  // phone cameras need this margin to detect the boundary of the code
+  function buildPaddedCanvas() {
     var canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
-    triggerDownload(canvas.toDataURL('image/png'), 'qr-code.png');
-  }
-
-  // JPEG has no alpha channel — draw the QR canvas onto a white-filled canvas first
-  function downloadJPG() {
-    var canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
-    var flat = document.createElement('canvas');
-    flat.width = canvas.width;
-    flat.height = canvas.height;
-    var ctx = flat.getContext('2d');
+    if (!canvas) return null;
+    var padding = 40;
+    var padded = document.createElement('canvas');
+    padded.width  = canvas.width  + padding * 2;
+    padded.height = canvas.height + padding * 2;
+    var ctx = padded.getContext('2d');
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, flat.width, flat.height);
-    ctx.drawImage(canvas, 0, 0);
-    triggerDownload(flat.toDataURL('image/jpeg', 0.95), 'qr-code.jpg');
+    ctx.fillRect(0, 0, padded.width, padded.height);
+    ctx.drawImage(canvas, padding, padding);
+    return padded;
   }
 
-  // embed the canvas PNG data URL inside an SVG image tag for the SVG export
+  function downloadPNG() {
+    var padded = buildPaddedCanvas();
+    if (!padded) return;
+    triggerDownload(padded.toDataURL('image/png'), 'qr-code.png');
+  }
+
+  // JPEG has no alpha channel — white background is already applied in buildPaddedCanvas
+  function downloadJPG() {
+    var padded = buildPaddedCanvas();
+    if (!padded) return;
+    triggerDownload(padded.toDataURL('image/jpeg', 0.95), 'qr-code.jpg');
+  }
+
+  // embed the padded PNG data URL inside an SVG image tag for the SVG export
   function downloadSVG() {
-    var canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
-    var dataURL = canvas.toDataURL('image/png');
+    var padded = buildPaddedCanvas();
+    if (!padded) return;
+    var dataURL = padded.toDataURL('image/png');
     var svgContent = [
       '<svg xmlns="http://www.w3.org/2000/svg"',
       '     xmlns:xlink="http://www.w3.org/1999/xlink"',
-      '     width="' + canvas.width + '" height="' + canvas.height + '">',
-      '  <image href="' + dataURL + '" width="' + canvas.width + '" height="' + canvas.height + '"/>',
+      '     width="' + padded.width + '" height="' + padded.height + '">',
+      '  <image href="' + dataURL + '" width="' + padded.width + '" height="' + padded.height + '"/>',
       '</svg>'
     ].join('\n');
     var blob = new Blob([svgContent], { type: 'image/svg+xml' });
