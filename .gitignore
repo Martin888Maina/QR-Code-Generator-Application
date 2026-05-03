@@ -1,0 +1,22 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Editor directories
+.vscode/
+.idea/
+
+# Project planning and reference documents — not part of the application
+CLAUDE.md
+COMPLETE_IMPLEMENTATION_GUIDE_TO_BUILD_QR_CODE_GENERATOR_APPLICATION.md
+complete\ guide\ to\ get\ started\ and\ configure\ digital\ ocean.md
+converting\ development\ code\ to\ production\ code.md
+Digital\ Ocean\ Deployment\ Strategy.md
+digital\ ocean\ start\ up\ guide.md
+GITHUB\ strategy\ for\ portfolio\ project\ application\ to\ be\ deployed\ to\ digital\ ocean.md
+Github.txt
+favicon.ico
