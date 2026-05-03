@@ -101,6 +101,7 @@
 
     clearError();
     generateBtn.textContent = 'Generating...';
+    generateBtn.disabled = true;
 
     // brief timeout gives the browser a frame to update the button label
     setTimeout(function () {
@@ -123,6 +124,7 @@
       currentQRText = text;
       enableDownloadButtons();
       generateBtn.textContent = 'Generate QR Code';
+      generateBtn.disabled = false;
     }, 200);
   }
 

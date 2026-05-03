@@ -220,6 +220,11 @@ a {
   opacity: 0.7;
 }
 
+.generate-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /* --- Output Panel --- */
 .output-panel {
   flex: 1;
@@ -299,6 +304,10 @@ a {
 
 /* --- Responsive: stack panels vertically on mobile --- */
 @media (max-width: 640px) {
+  .main-content {
+    padding: 16px 12px;
+  }
+
   .card {
     flex-direction: column;
   }
@@ -312,8 +321,15 @@ a {
     gap: 6px;
   }
 
+  /* ensure tap targets meet the 44px minimum on mobile */
   .download-btn {
     min-width: 80px;
+    min-height: 44px;
     font-size: 0.8125rem;
+  }
+
+  .tab-btn {
+    min-height: 44px;
+    padding: 10px 16px;
   }
 }
