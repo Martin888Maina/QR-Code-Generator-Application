@@ -169,59 +169,74 @@
 
   // --- Download functions ---
 
-  function downloadPNG() {
-    var canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
-    var link = document.createElement('a');
-    link.download = 'qr-code.png';
-    link.href = canvas.toDataURL('image/png');
-    // appending to the DOM before clicking ensures Safari triggers the download
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
-
-  // JPEG has no alpha channel — fill white before drawing the QR canvas on top
-  function downloadJPG() {
-    var canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
+  // qrcodejs renders both a <canvas> and an <img> inside #qrcode.
+  // The <img> src is a reliable data URL in all browsers — use it as the source
+  // for all exports by drawing it onto a fresh canvas first.
+  function getExportCanvas(callback) {
+    var img = qrContainer.querySelector('img');
+    if (!img) return;
     var exportCanvas = document.createElement('canvas');
-    exportCanvas.width = canvas.width;
-    exportCanvas.height = canvas.height;
+    exportCanvas.width = 220;
+    exportCanvas.height = 220;
     var ctx = exportCanvas.getContext('2d');
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-    ctx.drawImage(canvas, 0, 0);
+    // if the image is already loaded draw immediately, otherwise wait for load
+    if (img.complete && img.naturalWidth !== 0) {
+      ctx.drawImage(img, 0, 0, exportCanvas.width, exportCanvas.height);
+      callback(exportCanvas);
+    } else {
+      img.onload = function () {
+        ctx.drawImage(img, 0, 0, exportCanvas.width, exportCanvas.height);
+        callback(exportCanvas);
+      };
+    }
+  }
+
+  function triggerDownload(dataURL, filename) {
     var link = document.createElement('a');
-    link.download = 'qr-code.jpg';
-    link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
+    link.download = filename;
+    link.href = dataURL;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   }
 
-  // qrcodejs only renders a canvas — wrap the PNG data inside an SVG image tag
+  function downloadPNG() {
+    getExportCanvas(function (canvas) {
+      triggerDownload(canvas.toDataURL('image/png'), 'qr-code.png');
+    });
+  }
+
+  // JPEG has no alpha channel — the white fill in getExportCanvas handles this
+  function downloadJPG() {
+    getExportCanvas(function (canvas) {
+      triggerDownload(canvas.toDataURL('image/jpeg', 0.95), 'qr-code.jpg');
+    });
+  }
+
+  // embed the PNG data URL inside an SVG image tag for the SVG export
   function downloadSVG() {
-    var canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
-    var dataURL = canvas.toDataURL('image/png');
-    var svgContent = [
-      '<svg xmlns="http://www.w3.org/2000/svg"',
-      '     xmlns:xlink="http://www.w3.org/1999/xlink"',
-      '     width="' + canvas.width + '" height="' + canvas.height + '">',
-      '  <image href="' + dataURL + '" width="' + canvas.width + '" height="' + canvas.height + '"/>',
-      '</svg>'
-    ].join('\n');
-    var blob = new Blob([svgContent], { type: 'image/svg+xml' });
-    var objectURL = URL.createObjectURL(blob);
-    var link = document.createElement('a');
-    link.download = 'qr-code.svg';
-    link.href = objectURL;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    // defer revoke so the browser has time to start the download before the blob is released
-    setTimeout(function () { URL.revokeObjectURL(objectURL); }, 1000);
+    getExportCanvas(function (canvas) {
+      var dataURL = canvas.toDataURL('image/png');
+      var svgContent = [
+        '<svg xmlns="http://www.w3.org/2000/svg"',
+        '     xmlns:xlink="http://www.w3.org/1999/xlink"',
+        '     width="220" height="220">',
+        '  <image href="' + dataURL + '" width="220" height="220"/>',
+        '</svg>'
+      ].join('\n');
+      var blob = new Blob([svgContent], { type: 'image/svg+xml' });
+      var objectURL = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.download = 'qr-code.svg';
+      link.href = objectURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      // defer revoke so the browser starts the download before the blob is released
+      setTimeout(function () { URL.revokeObjectURL(objectURL); }, 1000);
+    });
   }
 
   // Wire each download button to its function
