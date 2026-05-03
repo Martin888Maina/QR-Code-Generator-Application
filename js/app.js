@@ -164,4 +164,65 @@
     input.classList.remove('error');
   }
 
+  // --- Download functions ---
+
+  function downloadPNG() {
+    var canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    var link = document.createElement('a');
+    link.download = 'qr-code.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  }
+
+  // JPEG has no alpha channel — fill white before drawing the QR canvas on top
+  function downloadJPG() {
+    var canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    var exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
+    var ctx = exportCanvas.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+    var link = document.createElement('a');
+    link.download = 'qr-code.jpg';
+    link.href = exportCanvas.toDataURL('image/jpeg', 0.95);
+    link.click();
+  }
+
+  // qrcodejs only renders a canvas — wrap the PNG data inside an SVG image tag
+  function downloadSVG() {
+    var canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    var dataURL = canvas.toDataURL('image/png');
+    var svgContent = [
+      '<svg xmlns="http://www.w3.org/2000/svg"',
+      '     xmlns:xlink="http://www.w3.org/1999/xlink"',
+      '     width="' + canvas.width + '" height="' + canvas.height + '">',
+      '  <image href="' + dataURL + '" width="' + canvas.width + '" height="' + canvas.height + '"/>',
+      '</svg>'
+    ].join('\n');
+    var blob = new Blob([svgContent], { type: 'image/svg+xml' });
+    var link = document.createElement('a');
+    link.download = 'qr-code.svg';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }
+
+  // Wire each download button to its function
+  document.getElementById('btn-png').addEventListener('click', function () {
+    if (!this.classList.contains('disabled')) downloadPNG();
+  });
+
+  document.getElementById('btn-jpg').addEventListener('click', function () {
+    if (!this.classList.contains('disabled')) downloadJPG();
+  });
+
+  document.getElementById('btn-svg').addEventListener('click', function () {
+    if (!this.classList.contains('disabled')) downloadSVG();
+  });
+
 })();
