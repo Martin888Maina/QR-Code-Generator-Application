@@ -2,11 +2,9 @@
 
 (function () {
 
-  // module-level state
   var currentQRText = '';
   var activeTab = 'url';
 
-  // DOM references
   var input        = document.getElementById('qr-input');
   var generateBtn  = document.getElementById('generate-btn');
   var errorMsg     = document.getElementById('error-msg');
@@ -16,7 +14,6 @@
   var tabBtns      = document.querySelectorAll('.tab-btn');
   var downloadBtns = document.querySelectorAll('.download-btn');
 
-  // tab switching
   tabBtns.forEach(function (btn) {
     btn.addEventListener('click', function () {
       tabBtns.forEach(function (b) {
@@ -36,12 +33,11 @@
         input.setAttribute('placeholder', 'Type any text here...');
       }
 
-      // switching tabs after a generation clears the output
+      // stale QR output would mismatch the new input mode; always reset on tab change
       resetOutput();
     });
   });
 
-  // live character counter and clear-button visibility
   input.addEventListener('input', function () {
     var len = input.value.length;
     charCount.textContent = len + ' / 500';
@@ -56,7 +52,6 @@
     clearError();
   });
 
-  // clear button resets everything
   clearBtn.addEventListener('click', function () {
     input.value = '';
     charCount.textContent = '0 / 500';
@@ -67,7 +62,6 @@
     input.focus();
   });
 
-  // generate on button click
   generateBtn.addEventListener('click', function () {
     generateQR();
   });
@@ -106,7 +100,6 @@
 
     // brief timeout gives the browser a frame to update the button label
     setTimeout(function () {
-      // remove placeholder and any previous QR output
       var placeholder = document.getElementById('qr-placeholder');
       if (placeholder) {
         placeholder.remove();
@@ -132,8 +125,6 @@
       }, 300);
     }, 200);
   }
-
-  // --- Helper functions ---
 
   function enableDownloadButtons() {
     downloadBtns.forEach(function (btn) {
@@ -211,7 +202,7 @@
     triggerDownload(padded.toDataURL('image/jpeg', 0.95), 'qr-code.jpg');
   }
 
-  // embed the padded PNG data URL inside an SVG image tag for the SVG export
+  // qrcodejs renders canvas only — SVG export wraps the rasterized canvas as an embedded image
   function downloadSVG() {
     var padded = buildPaddedCanvas();
     if (!padded) return;
@@ -234,7 +225,6 @@
     setTimeout(function () { URL.revokeObjectURL(objectURL); }, 1000);
   }
 
-  // Wire each download button to its function
   document.getElementById('btn-png').addEventListener('click', function () {
     if (!this.classList.contains('disabled')) downloadPNG();
   });
